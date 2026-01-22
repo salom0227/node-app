@@ -19,7 +19,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /apps/node-app
+            cd /home/deploy/apps/node-app
             git pull origin main
             npm install
             pm2 restart node-app || pm2 start index.js --name node-app
