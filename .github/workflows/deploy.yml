@@ -2,16 +2,25 @@ name: Auto Deploy Node App
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy on server
-        run: |
-          cd /home/deploy/apps/node-app
-          git pull
-          docker-compose up -d --build
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /apps/node-app
+            git pull origin main
+            npm install
+            pm2 restart node-app || pm2 start index.js --name node-app
+
