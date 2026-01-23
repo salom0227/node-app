@@ -1,4 +1,4 @@
-name: Auto Deploy Node App
+name: Auto Deploy (Local Runner)
 
 on:
   push:
@@ -6,19 +6,12 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 2222
-          script: |
-            cd /home/deploy/apps/node-app
-            git pull origin main
-            npm install
-            pm2 restart node-app || pm2 start index.js --name node-app
-
+      - name: Deploy locally
+        run: |
+          cd /home/deploy/apps/node-app
+          git pull origin main
+          npm install
+          pm2 restart node-app || pm2 start index.js --name node-app
