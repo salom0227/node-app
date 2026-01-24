@@ -7,6 +7,6 @@ http.createServer((req, res) => {
     return;
   }
 
-  res.end('Node.js AUTO DEPLOY ISHLAYAPTI 🚀 ' + new Date());
+  res.end('Node.js AUTO DEPLOY ISHLAYAPTI v2 🚀 ' + new Date());
 }).listen(3000);
 

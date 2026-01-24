@@ -1,17 +1,44 @@
-name: Auto Deploy (Local Runner)
+name: Auto Deploy + Report
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: self-hosted
 
     steps:
-      - name: Deploy locally
+      - name: Go to project
+        run: cd /home/deploy/apps/node-app
+
+      - name: Git pull
         run: |
           cd /home/deploy/apps/node-app
-          git pull origin main
-          npm install
-          pm2 restart node-app || pm2 start index.js --name node-app
+          git pull
+
+      - name: Show git changes (FILES)
+        run: |
+          cd /home/deploy/apps/node-app
+          echo "===== CHANGED FILES ====="
+          git show --stat --oneline -1
+
+      - name: Project size (MB)
+        run: |
+          cd /home/deploy/apps/node-app
+          echo "===== PROJECT SIZE ====="
+          du -sh .
+
+      - name: Build & Deploy with time
+        run: |
+          cd /home/deploy/apps/node-app
+          echo "===== DEPLOY START ====="
+          START=$(date +%s)
+
+          docker-compose up -d --build
+
+          END=$(date +%s)
+          echo "===== DEPLOY FINISHED ====="
+          echo "DEPLOY TIME: $((END - START)) seconds"
+
