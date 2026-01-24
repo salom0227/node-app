@@ -21,14 +21,6 @@ services:
     environment:
       - COLOR=green
     networks:
-      - web    
-    volumes:
-      - ./nginx:/etc/nginx/conf.d
-    depends_on:
-      - node-blue
-      - node-green
-    restart: always
-    networks:
       - web
 
 networks:
