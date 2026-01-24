@@ -1,4 +1,4 @@
-name: Zero Downtime Deploy + Report
+name: Zero Downtime Auto Deploy
 
 on:
   push:
@@ -10,34 +10,33 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Git pull
-        run: |
-          cd /home/deploy/apps/node-app
-          git pull
+      - name: Go to project
+        run: cd /home/deploy/apps/node-app
 
-      - name: Show git changes (FILES)
+      - name: Pull latest code
         run: |
           cd /home/deploy/apps/node-app
-          echo "===== CHANGED FILES ====="
+          git pull origin main
+
+      - name: Show git changes
+        run: |
+          cd /home/deploy/apps/node-app
+          echo "===== LAST COMMIT ====="
           git show --stat --oneline -1
 
-      - name: Project size (MB)
-        run: |
-          cd /home/deploy/apps/node-app
-          echo "===== PROJECT SIZE ====="
-          du -sh .
-
-      - name: Build images
+      - name: Build Docker images
         run: |
           cd /home/deploy/apps/node-app
           docker compose build
 
-      - name: Start containers (blue + green)
+      - name: Start blue and green containers
         run: |
           cd /home/deploy/apps/node-app
-          docker compose up -d
+          docker compose up -d node-blue node-green
 
       - name: Switch traffic (zero-downtime)
         run: |
-          /home/deploy/apps/node-app/switch.sh
+          cd /home/deploy/apps/node-app
+          chmod +x switch.sh
+          ./switch.sh
 

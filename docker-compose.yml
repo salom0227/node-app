@@ -21,13 +21,7 @@ services:
     environment:
       - COLOR=green
     networks:
-      - web
-
-  nginx:
-    image: nginx:alpine
-    container_name: global-nginx
-    ports:
-      - "80:80"
+      - web    
     volumes:
       - ./nginx:/etc/nginx/conf.d
     depends_on:
