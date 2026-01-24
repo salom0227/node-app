@@ -1,4 +1,4 @@
-name: Auto Deploy + Report
+name: Zero Downtime Deploy + Report
 
 on:
   push:
@@ -27,21 +27,17 @@ jobs:
           echo "===== PROJECT SIZE ====="
           du -sh .
 
-      - name: Stop old containers
+      - name: Build images
         run: |
           cd /home/deploy/apps/node-app
-          docker compose down || true
+          docker compose build
 
-      - name: Build & Deploy with time
+      - name: Start containers (blue + green)
         run: |
           cd /home/deploy/apps/node-app
-          echo "===== DEPLOY START ====="
-          START=$(date +%s)
+          docker compose up -d
 
-          docker compose up -d --build
+      - name: Switch traffic (zero-downtime)
+        run: |
+          /home/deploy/apps/node-app/switch.sh
 
-          END=$(date +%s)
-          echo "===== DEPLOY FINISHED ====="
-          echo "DEPLOY TIME: $((END - START)) seconds"
-
-    

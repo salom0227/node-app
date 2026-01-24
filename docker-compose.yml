@@ -1,15 +1,43 @@
 version: "3.9"
 
 services:
-  node-app:
+  node-blue:
     build: .
-    container_name: node-app
+    container_name: node-blue
     restart: always
     expose:
       - "3000"
+    environment:
+      - COLOR=blue
+    networks:
+      - web
+
+  node-green:
+    build: .
+    container_name: node-green
+    restart: always
+    expose:
+      - "3000"
+    environment:
+      - COLOR=green
+    networks:
+      - web
+
+  nginx:
+    image: nginx:alpine
+    container_name: global-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - node-blue
+      - node-green
+    restart: always
     networks:
       - web
 
 networks:
   web:
     external: true
+

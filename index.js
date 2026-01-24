@@ -1,12 +1,22 @@
 const http = require('http');
 
 http.createServer((req, res) => {
+
+  // 🔥 AUTH'DAN MUSTAQIL HEALTH
+  if (req.url === '/healthz') {
+    res.writeHead(200);
+    res.end('OK');
+    return;
+  }
+
+  // pastda AUTH / LOGIN / boshqa logic
   if (req.url === '/health') {
     res.writeHead(200);
     res.end('OK');
     return;
   }
 
-  res.end('Node.js AUTO DEPLOY ISHLAYAPTI v2 🚀 ' + new Date());
-}).listen(3000);
+  // qolgan routing
+  res.end('Node.js is running ' + new Date());
 
+}).listen(3000);
