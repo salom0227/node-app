@@ -21,7 +21,6 @@ jobs:
       - name: Show git changes
         run: |
           cd /home/deploy/apps/node-app
-          echo "===== LAST COMMIT ====="
           git show --stat --oneline -1
 
       - name: Build Docker images
@@ -34,9 +33,16 @@ jobs:
           cd /home/deploy/apps/node-app
           docker compose up -d node-blue node-green
 
-      - name: Switch traffic (zero-downtime)
+      - name: Switch traffic (zero-downtime + rollback)
         run: |
           cd /home/deploy/apps/node-app
           chmod +x switch.sh
           ./switch.sh
+
+      - name: Cleanup failed deploy (rollback safety)
+        if: failure()
+        run: |
+          cd /home/deploy/apps/node-app
+          docker compose down --remove-orphans
+          docker compose up -d
 

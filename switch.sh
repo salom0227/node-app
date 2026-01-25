@@ -1,50 +1,41 @@
 #!/bin/bash
 set -e
 
-APP_DIR="/home/deploy/apps/node-app"
-NGINX_DIR="$APP_DIR/nginx"
-ACTIVE_FILE="$NGINX_DIR/active_color.txt"
+APP_PORT=3000
+TIMEOUT=10
 
-cd "$APP_DIR"
+ACTIVE_FILE="./nginx/active_color.txt"
 
-echo "=== ZERO-DOWNTIME TRAFFIC SWITCH ==="
+CURRENT=$(cat $ACTIVE_FILE 2>/dev/null || echo "blue")
 
-# active_color init
-if [ ! -f "$ACTIVE_FILE" ]; then
-  mkdir -p "$NGINX_DIR"
-  echo "blue" > "$ACTIVE_FILE"
-fi
-
-ACTIVE_COLOR=$(cat "$ACTIVE_FILE")
-
-if [ "$ACTIVE_COLOR" = "blue" ]; then
-  NEW_COLOR="green"
-  NEW_CONTAINER="node-green"
+if [ "$CURRENT" = "blue" ]; then
+  NEXT="green"
 else
-  NEW_COLOR="blue"
-  NEW_CONTAINER="node-blue"
+  NEXT="blue"
 fi
 
-echo "Switching traffic to $NEW_COLOR"
+echo "Current: $CURRENT"
+echo "Trying to switch to: $NEXT"
 
-# container tekshiruvi
-docker ps | grep "$NEW_CONTAINER" >/dev/null
+# Health check
+for i in $(seq 1 $TIMEOUT); do
+  if docker exec node-$NEXT curl -s http://localhost:$APP_PORT >/dev/null; then
+    echo "✅ $NEXT is healthy"
+    break
+  fi
+  sleep 1
+done
 
-# upstream yangilash
-cat > "$NGINX_DIR/upstream.conf" <<EOF
-upstream node_app {
-    server $NEW_CONTAINER:3000;
-}
-EOF
+# Agar sog‘lom bo‘lmasa — rollback
+if ! docker exec node-$NEXT curl -s http://localhost:$APP_PORT >/dev/null; then
+  echo "❌ $NEXT failed — ROLLBACK"
+  exit 1
+fi
 
-# 🔥 MUHIM: SYSTEM NGINX YO‘Q
-# 🔥 SHU YERDA XATO BOR EDI, OLIB TASHLANDI
-# nginx -t
-# systemctl reload nginx
+# Traffic switch
+echo $NEXT > $ACTIVE_FILE
 
-# agar nginx docker ichida bo‘lsa
-docker exec nginx nginx -s reload || true
+docker exec global-nginx nginx -s reload
 
-echo "$NEW_COLOR" > "$ACTIVE_FILE"
+echo "🚀 Switched traffic to $NEXT"
 
-echo "=== SWITCH DONE ==="
